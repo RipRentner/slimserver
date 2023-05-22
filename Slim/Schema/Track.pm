@@ -8,6 +8,8 @@ use Digest::MD5 qw(md5_hex);
 use Scalar::Util qw(blessed);
 use Tie::Cache::LRU::Expires;
 
+use if main::ISWINDOWS, 'Win32::UTCFileTime';
+
 use Slim::Schema::ResultSet::Track;
 
 use Slim::Music::Artwork;
@@ -428,7 +430,7 @@ sub coverArtMtime {
 	my $artwork = $self->cover;
 
 	if ($artwork && -r $artwork) {
-		return (stat(_))[9];
+		return (stat(main::ISWINDOWS ? $artwork : _))[9];
 	}
 
 	return -1;
@@ -683,7 +685,7 @@ sub generateCoverId {
 	}
 	elsif ( -e $args->{cover} ) {
 		# Cache is based on mtime/size of artwork file
-		($size, $mtime) = (stat _)[7, 9];
+		($size, $mtime) = (stat(main::ISWINDOWS ? $args->{cover} : _))[7, 9];
 	}
 
 	if ( $mtime && $size ) {
